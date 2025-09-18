@@ -1,7 +1,6 @@
 """SQLite storage layer for TimeGlass profiling data."""
 
 import sqlite3
-from pathlib import Path
 from typing import List, Optional
 from datetime import datetime
 from .models import ProfilingMetrics, SystemMetrics, QueryMetrics
@@ -12,8 +11,19 @@ class TimeGlassStorage:
 
     def __init__(self, db_path: str = "timeglass.db"):
         """Initialize database connection."""
-        self.db_path = Path(db_path)
-        self._init_db()
+        self.db_path = db_path  # Keep as string for sqlite3
+        # For in-memory databases, we need to keep the connection alive
+        if db_path == ":memory:":
+            self._connection = sqlite3.connect(db_path)
+            self._init_db()
+        else:
+            self._connection = None
+
+    def _get_connection(self):
+        """Get database connection, reusing for in-memory databases."""
+        if self.db_path == ":memory:" and self._connection:
+            return self._connection
+        return sqlite3.connect(self.db_path)
 
     def _init_db(self):
         """Initialize database tables."""
@@ -82,9 +92,59 @@ class TimeGlassStorage:
 
             conn.commit()
 
+    def _ensure_tables(self, conn):
+        """Ensure database tables exist."""
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS profiling_metrics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                request_id TEXT UNIQUE NOT NULL,
+                start_time TEXT NOT NULL,
+                end_time TEXT,
+                duration_ms REAL,
+                cpu_usage_percent REAL,
+                memory_usage_mb REAL,
+                memory_usage_percent REAL,
+                method TEXT,
+                path TEXT,
+                status_code INTEGER,
+                response_size_bytes INTEGER,
+                user_agent TEXT,
+                client_ip TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS system_metrics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                cpu_usage_percent REAL NOT NULL,
+                memory_usage_mb REAL NOT NULL,
+                memory_usage_percent REAL NOT NULL,
+                total_memory_mb INTEGER NOT NULL,
+                cpu_count INTEGER NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS query_metrics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                request_id TEXT NOT NULL,
+                query TEXT NOT NULL,
+                duration_ms REAL NOT NULL,
+                timestamp TEXT NOT NULL,
+                connection_id TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (request_id) REFERENCES profiling_metrics (request_id)
+            )
+        """)
+
     def save_profiling_metrics(self, metrics: ProfilingMetrics):
         """Save profiling metrics to database."""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = self._get_connection()
+        try:
+            self._ensure_tables(conn)
             conn.execute("""
                 INSERT OR REPLACE INTO profiling_metrics (
                     request_id, start_time, end_time, duration_ms,
@@ -108,10 +168,15 @@ class TimeGlassStorage:
                 metrics.client_ip,
             ))
             conn.commit()
+        finally:
+            if self.db_path != ":memory:":
+                conn.close()
 
     def save_system_metrics(self, metrics: SystemMetrics):
         """Save system metrics to database."""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = self._get_connection()
+        try:
+            self._ensure_tables(conn)
             conn.execute("""
                 INSERT INTO system_metrics (
                     timestamp, cpu_usage_percent, memory_usage_mb,
@@ -126,10 +191,14 @@ class TimeGlassStorage:
                 metrics.cpu_count,
             ))
             conn.commit()
+        finally:
+            if self.db_path != ":memory:":
+                conn.close()
 
     def save_query_metrics(self, metrics: QueryMetrics):
         """Save query metrics to database."""
         with sqlite3.connect(self.db_path) as conn:
+            self._ensure_tables(conn)
             conn.execute("""
                 INSERT INTO query_metrics (
                     request_id, query, duration_ms, timestamp, connection_id
@@ -172,9 +241,14 @@ class TimeGlassStorage:
         query += " ORDER BY start_time DESC LIMIT ? OFFSET ?"
         params.extend([limit, offset])
 
-        with sqlite3.connect(self.db_path) as conn:
+        conn = self._get_connection()
+        try:
+            self._ensure_tables(conn)
             cursor = conn.execute(query, params)
             rows = cursor.fetchall()
+        finally:
+            if self.db_path != ":memory:":
+                conn.close()
 
         metrics = []
         for row in rows:
@@ -223,9 +297,14 @@ class TimeGlassStorage:
         query += " ORDER BY timestamp DESC LIMIT ?"
         params.append(limit)
 
-        with sqlite3.connect(self.db_path) as conn:
+        conn = self._get_connection()
+        try:
+            self._ensure_tables(conn)
             cursor = conn.execute(query, params)
             rows = cursor.fetchall()
+        finally:
+            if self.db_path != ":memory:":
+                conn.close()
 
         metrics = []
         for row in rows:
@@ -242,7 +321,9 @@ class TimeGlassStorage:
 
     def get_stats_summary(self) -> dict:
         """Get summary statistics."""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = self._get_connection()
+        try:
+            self._ensure_tables(conn)
             # Request statistics
             cursor = conn.execute("""
                 SELECT
@@ -266,6 +347,9 @@ class TimeGlassStorage:
                 WHERE timestamp >= datetime('now', '-1 hour')
             """)
             sys_stats = cursor.fetchone()
+        finally:
+            if self.db_path != ":memory:":
+                conn.close()
 
         return {
             "total_requests": req_stats[0] if req_stats[0] else 0,
