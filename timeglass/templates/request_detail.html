@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Request Details - TimeGlass{% endblock %}
+
+{% block content %}
+<header class="mb-8">
+    <a href="/" class="text-blue-600 hover:text-blue-800 mb-4 inline-block text-sm">
+        ← Back to Dashboard
+    </a>
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Request Details</h1>
+    <p class="text-gray-600">Request ID: <code class="bg-gray-100 px-2 py-1 rounded">{{ request_id }}</code></p>
+</header>
+
+<div class="bg-white rounded-lg shadow p-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Request Information -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Request Information</h2>
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Method:</span>
+                    <span class="px-2 py-1 rounded text-sm font-medium method-{{ method|lower if method != 'N/A' else 'default' }}">{{ method }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Path:</span>
+                    <code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono break-all">{{ path }}</code>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Status Code:</span>
+                    <span class="px-2 py-1 rounded text-sm font-medium status-code-{{ status_class }}">{{ status_code }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Response Size:</span>
+                    <span class="text-sm">{{ response_size_bytes }} bytes</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">User Agent:</span>
+                    <span class="text-sm break-all">{{ user_agent }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Client IP:</span>
+                    <code class="bg-gray-100 px-2 py-1 rounded text-sm">{{ client_ip }}</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Performance Metrics</h2>
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Start Time:</span>
+                    <span class="text-sm">{{ start_time }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">End Time:</span>
+                    <span class="text-sm">{{ end_time }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Duration:</span>
+                    <span class="px-2 py-1 rounded text-sm font-medium {{ duration_class }}">{{ duration }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">CPU Usage:</span>
+                    <span class="px-2 py-1 rounded text-sm font-medium {{ cpu_class }}">{{ cpu_usage }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Memory Usage:</span>
+                    <span class="px-2 py-1 rounded text-sm font-medium {{ memory_class }}">{{ memory_usage }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Memory Usage %:</span>
+                    <span class="px-2 py-1 rounded text-sm font-medium {{ memory_percent_class }}">{{ memory_percent }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

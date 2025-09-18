@@ -14,7 +14,9 @@ timeglass = "timeglass.cli:app"
 python = "^3.10"
 fastapi = "^0.104.0"
 uvicorn = "^0.24.0"
-typer = "^0.9.0"
+typer = "^0.15.4"
+rich = "^12.6.0"
+jinja2 = "^3.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
@@ -24,6 +26,7 @@ pre-commit = "^3.5.0"
 pytest-cov = "^4.1.0"
 setuptools-rust = "^1.8.0"
 requests = "^2.31.0"
+httpx = "^0.25.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools", "setuptools-rust"]

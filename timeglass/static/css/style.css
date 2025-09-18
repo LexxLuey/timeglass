@@ -1,0 +1,127 @@
+/* TimeGlass Dashboard Custom Styles */
+
+/* Status code styling */
+.status-code-2xx {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+.status-code-3xx {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+.status-code-4xx {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+}
+
+.status-code-5xx {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+}
+
+.status-code-default {
+    background-color: #f3f4f6 !important;
+    color: #1f2937 !important;
+}
+
+/* HTTP method styling */
+.method-get {
+    background-color: #dbeafe !important;
+    color: #1e40af !important;
+}
+
+.method-post {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+.method-put {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+.method-delete {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+}
+
+.method-default {
+    background-color: #f3f4f6 !important;
+    color: #1f2937 !important;
+}
+
+/* Performance metrics styling */
+.perf-good {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+.perf-warning {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+.perf-critical {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+}
+
+.perf-neutral {
+    background-color: #f3f4f6 !important;
+    color: #1f2937 !important;
+}
+
+/* Table hover effects */
+#requests-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+#requests-table tbody tr:hover {
+    @apply bg-gray-50;
+}
+
+/* Loading spinner */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Custom focus styles */
+.focus-ring:focus {
+    @apply ring-2 ring-blue-500 ring-opacity-50;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        @apply px-2;
+    }
+
+    #requests-table th,
+    #requests-table td {
+        @apply px-2 py-2 text-xs;
+    }
+}
+
+/* Dark mode support (future enhancement) */
+@media (prefers-color-scheme: dark) {
+    /* Add dark mode styles here when needed */
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        @apply bg-white text-black;
+    }
+}
